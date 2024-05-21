@@ -27,10 +27,18 @@ async function run() {
     await client.connect();
 
     const menuCollection = client.db("bistroDB").collection("menu");
+    const reviewCollection = client.db("bistroDB").collection("review");
+    const cartCollection = client.db("bistroDB").collection("cart");
 
 // get all menu data from db
 app.get("/menu", async(req, res) => {
     result = await menuCollection.find().toArray()
+    res.send(result)
+})
+
+app.post("/carts", async(req, res) => {
+    cartItem = req.body;
+    result = await cartCollection.insertOne(cartItem)
     res.send(result)
 })
 

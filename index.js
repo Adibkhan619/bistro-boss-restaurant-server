@@ -42,6 +42,11 @@ app.post("/carts", async(req, res) => {
     res.send(result)
 })
 
+app.get('/carts', async(req, res) => {
+    result = await cartCollection.find().toArray()
+    res.send(result)
+})
+
 app.get('/', (req, res) => {
     res.send('App is running')
 })
@@ -50,19 +55,7 @@ app.listen(port, () => {
     console.log(`App is running on port : ${port}`);
 })
 
-
-
-
-
-
-
-
-
-
     // Send a ping to confirm a successful connection
-
-
-
 
     // await client.db("admin").command({ ping: 1 });
 

@@ -26,9 +26,24 @@ async function run() {
     // Connect the client to the server	(optional starting in v4.7)
     await client.connect();
 
+    const usersCollection = client.db("bistroDB").collection("users");
     const menuCollection = client.db("bistroDB").collection("menu");
     const reviewCollection = client.db("bistroDB").collection("review");
     const cartCollection = client.db("bistroDB").collection("cart");
+
+
+
+    // POst user data into db
+    app.post("/users", async(req, res ) => {
+        const user = req.body
+        const result = await usersCollection.insertOne(user)
+        res.send(result)
+    })
+
+app.get("/users", async(req, res) => {
+    result = await usersCollection.find().toArray()
+    res.send(result)
+})
 
 // get all menu data from db
 app.get("/menu", async(req, res) => {
@@ -36,6 +51,8 @@ app.get("/menu", async(req, res) => {
     res.send(result)
 })
 
+
+// POST CART DATA
 app.post("/carts", async(req, res) => {
     cartItem = req.body;
     result = await cartCollection.insertOne(cartItem)

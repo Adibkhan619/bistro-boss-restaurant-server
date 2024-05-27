@@ -32,6 +32,7 @@ async function run() {
         const menuCollection = client.db("bistroDB").collection("menu");
         const reviewCollection = client.db("bistroDB").collection("review");
         const cartCollection = client.db("bistroDB").collection("cart");
+        const paymentCollection = client.db("bistroDB").collection("payment");
 
         // ! JWT related APi --->
         app.post("/jwt", async (req, res) => {
@@ -210,6 +211,48 @@ async function run() {
             const result = await cartCollection.deleteOne(query);
             res.send(result);
         });
+
+        // TODO: Payment Intent -------------- .>
+
+        app.post("/create-payment-intent", async (req, res) =>{
+            const { price } = req.body;
+            const amount = parseInt(price * 100);
+
+            const paymentIntent = await stripe.paymentIntents.create({
+                amount: amount,
+                currency: 'usd',
+                payment_method_types: ['card'], 
+            })
+
+            res.send({
+                clientSecret: paymentIntent.client_secret
+            })
+        })
+
+        // todo: Payment API ---------> 
+
+        app.get("/payments/:email", verifyToken, async (req, res) => {
+            const query = {email: req.params.email}
+            if(req.params.email !== req.decoded.email){
+                return res.status(403).send({message: 'forbidden access'})
+            }
+            const result = await paymentCollection.find(query).toArray()
+            res.send(result)
+        })
+
+        app.post("/payments", async (req, res) => {
+            const payment = req.body;
+            const paymentResult = await paymentCollection.insertOne(payment)
+            console.log('payment info', payment);
+
+            // *Carefully delete each item from the cart -----> 
+            const query = { _id: {
+                $in: payment.cartIds.map(id => new ObjectId(id))
+            }}
+            const deleteResult = await cartCollection.deleteMany(query)
+            
+            res.send({paymentResult, deleteResult})
+        })
 
         app.get("/", (req, res) => {
             res.send("App is running");

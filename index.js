@@ -254,6 +254,39 @@ async function run() {
             res.send({paymentResult, deleteResult})
         })
 
+
+        // TODO -- Admin-stats ---------->
+        app.get('/admin-stats', verifyToken, verifyAdmin, async(req, res) => {
+            const users = await usersCollection.estimatedDocumentCount()
+            const menuItems = await menuCollection.estimatedDocumentCount()
+            const orders = await paymentCollection.estimatedDocumentCount()
+
+            // This is not the best way---->
+            // const payments = await paymentCollection.find().toArray()
+            // const revenue = payments.reduce((total, payment) => total + payment.price ,0)
+
+            // * sum of payment using aggregate pipeline--------- >
+            const result = await paymentCollection.aggregate([
+                {
+                    $group: {
+                        _id: null,
+                        totalRevenue: {
+                            $sum : '$price',
+                        }
+                    }
+                }
+            ]).toArray()
+
+            const revenue = result.length > 0 ? result[0].totalRevenue : 0;
+
+            res.send({
+                users,
+                menuItems,
+                orders,
+                revenue
+            })
+        })
+
         app.get("/", (req, res) => {
             res.send("App is running");
         });
